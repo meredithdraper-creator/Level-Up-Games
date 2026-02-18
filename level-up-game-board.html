@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVEL UP – Activity Game Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --warm-bg: #FF6B6B;
+    --warm-light: #FFE0E0;
+    --power-bg: #6C5CE7;
+    --power-light: #E8E4FF;
+    --level-bg: #00B894;
+    --level-light: #D4F5EE;
+    --listen: #FF6B6B;
+    --engage: #FDCB6E;
+    --validate: #00CEC9;
+    --elevate: #A29BFE;
+    --lead: #FF7675;
+    --dark: #2D3436;
+    --card-radius: 16px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,184,148,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(255,107,107,0.1) 0%, transparent 60%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(56px, 10vw, 96px);
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, #FF6B6B, #FDCB6E, #00CEC9, #A29BFE, #FF7675);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    filter: drop-shadow(0 4px 24px rgba(255,107,107,0.4));
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 4px 24px rgba(255,107,107,0.4)); }
+    50% { filter: drop-shadow(0 4px 40px rgba(162,155,254,0.6)); }
+  }
+
+  .tagline {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+    margin-bottom: 20px;
+  }
+
+  /* ACRONYM */
+  .acronym-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .acronym-pill {
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    border: 2px solid;
+    transition: transform 0.2s;
+  }
+  .acronym-pill:hover { transform: scale(1.08); }
+  .a-L { background: rgba(255,107,107,0.2); border-color: var(--listen); color: #ff9a9a; }
+  .a-E { background: rgba(253,203,110,0.2); border-color: var(--engage); color: var(--engage); }
+  .a-V { background: rgba(0,206,201,0.2); border-color: var(--validate); color: var(--validate); }
+  .a-El { background: rgba(162,155,254,0.2); border-color: var(--elevate); color: var(--elevate); }
+  .a-Ld { background: rgba(255,118,117,0.2); border-color: var(--lead); color: #ffb3b2; }
+
+  /* LEVEL TABS */
+  .level-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 100px;
+    font-family: 'Boogaloo', cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .tab-btn:hover::after { opacity: 1; }
+  .tab-btn.active { transform: scale(1.05); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+  .tab-warm { background: linear-gradient(135deg, #FF6B6B, #ee5a24); color: #fff; }
+  .tab-power { background: linear-gradient(135deg, #6C5CE7, #a29bfe); color: #fff; }
+  .tab-level { background: linear-gradient(135deg, #00B894, #00CEC9); color: #fff; }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* TIME FILTER */
+  .filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 7px 18px;
+    border-radius: 100px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.6);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.5);
+    color: #fff;
+  }
+
+  /* CATEGORY SECTION */
+  .category-section {
+    margin-bottom: 36px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255,255,255,0.08);
+  }
+
+  .category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .category-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+
+  .category-sub {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+
+  /* GAME CARD */
+  .game-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--card-radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+  }
+
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .game-name {
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 1.3;
+    flex: 1;
+    padding-right: 8px;
+  }
+
+  .time-badge {
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+  }
+
+  .game-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.65);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .game-card.expanded .game-desc {
+    display: block;
+    -webkit-line-clamp: unset;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .how-to {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.75);
+  }
+
+  .game-card.expanded .how-to {
+    display: block;
+  }
+
+  .how-to strong {
+    color: #fff;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .sel-tag {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.45);
+  }
+
+  .expand-hint {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 8px;
+    font-weight: 700;
+    transition: color 0.2s;
+  }
+  .game-card:hover .expand-hint { color: rgba(255,255,255,0.5); }
+  .game-card.expanded .expand-hint { color: rgba(255,255,255,0.3); }
+
+  /* Category colors */
+  .cat-listen .game-card::before { background: var(--listen); }
+  .cat-listen .category-icon { background: rgba(255,107,107,0.25); }
+  .cat-listen .category-title { color: #ff9a9a; }
+  .cat-listen .game-card:hover { border-color: rgba(255,107,107,0.4); }
+
+  .cat-engage .game-card::before { background: var(--engage); }
+  .cat-engage .category-icon { background: rgba(253,203,110,0.25); }
+  .cat-engage .category-title { color: var(--engage); }
+  .cat-engage .game-card:hover { border-color: rgba(253,203,110,0.4); }
+
+  .cat-validate .game-card::before { background: var(--validate); }
+  .cat-validate .category-icon { background: rgba(0,206,201,0.25); }
+  .cat-validate .category-title { color: var(--validate); }
+  .cat-validate .game-card:hover { border-color: rgba(0,206,201,0.4); }
+
+  .cat-elevate .game-card::before { background: var(--elevate); }
+  .cat-elevate .category-icon { background: rgba(162,155,254,0.25); }
+  .cat-elevate .category-title { color: var(--elevate); }
+  .cat-elevate .game-card:hover { border-color: rgba(162,155,254,0.4); }
+
+  .cat-lead .game-card::before { background: var(--lead); }
+  .cat-lead .category-icon { background: rgba(255,118,117,0.25); }
+  .cat-lead .category-title { color: #ffb3b2; }
+  .cat-lead .game-card:hover { border-color: rgba(255,118,117,0.4); }
+
+  /* LEVEL PANELS */
+  .level-panel { display: none; }
+  .level-panel.active { display: block; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px 0 16px;
+    color: rgba(255,255,255,0.25);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* HIDDEN by time filter */
+  .game-card.hidden-by-filter { display: none; }
+
+  /* random game button */
+  .random-btn {
+    display: block;
+    margin: 0 auto 32px;
+    padding: 14px 40px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.25s;
+    letter-spacing: 1px;
+  }
+  .random-btn:hover {
+    background: rgba(255,255,255,0.15);
+    transform: scale(1.04);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #1e1e3f;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    max-width: 500px;
+    width: 100%;
+    padding: 32px;
+    animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .modal-close:hover { color: #fff; }
+  .modal-cat { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+  .modal-title { font-family: 'Boogaloo', cursive; font-size: 36px; margin-bottom: 6px; color: #fff; }
+  .modal-time { display: inline-block; padding: 4px 14px; border-radius: 100px; background: rgba(255,255,255,0.1); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+  .modal-desc { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 20px; }
+  .modal-how strong { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.45); display: block; margin-bottom: 8px; }
+  .modal-how p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.75); }
+  .modal-skill { margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 600; }
+  .modal-skill strong { color: rgba(255,255,255,0.6); }
+
+  @media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .tab-btn { padding: 10px 22px; font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">LEVEL UP</div>
+    <div class="tagline">Social-Emotional Learning Game Board</div>
+    <div class="acronym-bar">
+      <div class="acronym-pill a-L">L – Listen</div>
+      <div class="acronym-pill a-E">E – Engage</div>
+      <div class="acronym-pill a-V">V – Validate</div>
+      <div class="acronym-pill a-El">E – Elevate</div>
+      <div class="acronym-pill a-Ld">L – Lead</div>
+    </div>
+  </header>
+
+  <div class="level-tabs">
+    <button class="tab-btn tab-warm active" onclick="switchLevel('warm')">🔥 Warm Up</button>
+    <button class="tab-btn tab-power" onclick="switchLevel('power')">⚡ Power Up</button>
+    <button class="tab-btn tab-level" onclick="switchLevel('level')">🚀 Level Up</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--listen)"></div> Listen</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--engage)"></div> Engage</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--validate)"></div> Validate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--elevate)"></div> Elevate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--lead)"></div> Lead</div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterTime('all', this)">⏱ All Times</button>
+    <button class="filter-btn" onclick="filterTime('3', this)">3 Min</button>
+    <button class="filter-btn" onclick="filterTime('5', this)">5 Min</button>
+    <button class="filter-btn" onclick="filterTime('10', this)">10 Min</button>
+  </div>
+
+  <button class="random-btn" onclick="pickRandom()">🎲 Pick a Random Game</button>
+
+  <!-- WARM UP PANEL -->
+  <div id="panel-warm" class="level-panel active"></div>
+  <!-- POWER UP PANEL -->
+  <div id="panel-power" class="level-panel"></div>
+  <!-- LEVEL UP PANEL -->
+  <div id="panel-level" class="level-panel"></div>
+
+  <footer>Level Up Framework · 90 Games · No Materials Required</footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-cat" id="m-cat"></div>
+    <div class="modal-title" id="m-title"></div>
+    <div class="modal-time" id="m-time"></div>
+    <div class="modal-desc" id="m-desc"></div>
+    <div class="modal-how">
+      <strong>How to Play</strong>
+      <p id="m-how"></p>
+    </div>
+    <div class="modal-skill" id="m-skill"></div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  warm: {
+    label: "Warm Up",
+    categories: {
+      listen: {
+        icon: "👂",
+        label: "Listen",
+        skill: "Active Listening",
+        games: [
+          {name:"Word Chain Echo",time:3,desc:"A fast-paced chain game where each player must repeat the last word and add one – but only if they were truly listening.",how:"Stand or sit in a circle. Player 1 says a word. Player 2 repeats it and adds a new related word. Player 3 repeats both and adds one. If someone breaks the chain or misses a word, the chain restarts. Challenge: how long can the class go?",skill:"Active Listening, Working Memory"},
+          {name:"Two Truths Whisper",time:5,desc:"Telephone meets Two Truths – watch how messages morph when no one truly listens.",how:"Player 1 whispers two truths and a lie to the next person. Each person whispers what they heard. Last person says it aloud. The group guesses the lie AND discusses how the message changed. Bonus: talk about what causes miscommunication.",skill:"Listening Accuracy, Mindful Communication"},
+          {name:"Sound Map",time:3,desc:"Total silence. Everyone closes their eyes and maps every sound they hear. Then compares lists.",how:"Set a 60-second timer. Everyone closes eyes and mentally notes every single sound. Go around – who heard something nobody else noticed? Discuss how we tune out sounds (and people) when we're not paying attention.",skill:"Present-Moment Awareness, Observation"},
+          {name:"No Interruption Zone",time:5,desc:"One person talks for 60 seconds. Nobody else can react, nod, or make a sound. Then listeners report back.",how:"One volunteer shares something they care about for 60 seconds. The rest must listen with zero reactions – no nodding, no expressions. Then each listener shares what they remember. Debrief: how did it feel to speak with no feedback? To listen with no cues?",skill:"Focused Listening, Empathy"},
+          {name:"Beat Detective",time:3,desc:"Someone taps a secret rhythm under a desk. The class must detect and reproduce it exactly.",how:"One student taps a short rhythmic pattern (4–8 beats) under their desk or on their knee – silent to observers. Volunteers try to reproduce the pattern by tapping what they think they heard. No talking, just listening with full body attention.",skill:"Auditory Attention, Nonverbal Awareness"}
+        ]
+      },
+      engage: {
+        icon: "⚡",
+        label: "Engage",
+        skill: "Presence & Participation",
+        games: [
+          {name:"Shake & Switch",time:3,desc:"Musical chairs energy without the chairs – everyone is moving, meeting, and engaging every 20 seconds.",how:"Set a timer for 20 seconds. Everyone walks around the room. When the timer beeps, find the nearest person and answer a quick prompt (e.g., 'What's your go-to comfort food?'). Timer beeps again – move to someone new. Rotate 5 times.",skill:"Social Engagement, Conversation Skills"},
+          {name:"Yes, And!",time:5,desc:"Improv's most famous rule becomes a game – build the most ridiculous story possible without saying no.",how:"Sit in a circle. One person starts a silly story with one sentence. The next person must say 'Yes, and…' to continue it. No blocking, no negating. See how wild the story gets. Debrief: how did it feel when someone actually built on your idea?",skill:"Active Participation, Collaborative Thinking"},
+          {name:"Bop It Feelings",time:3,desc:"Like the toy, but with emotions: call out a feeling, everyone acts it out with their face and body instantly.",how:"The leader calls out an emotion (confused, proud, terrified, giddy, etc.). Everyone has 2 seconds to show it physically. Leader scans the room and calls 'freeze' – discuss the differences in expression. No wrong answers.",skill:"Emotional Vocabulary, Embodied Expression"},
+          {name:"Category Lightning",time:3,desc:"Around-the-room speed round – answer your category before the clap reaches you or you're out.",how:"Choose a category (things in a backpack, pizza toppings, superhero powers). One student claps to another. The person who receives the clap must instantly name something in the category. Repeat a word or freeze and you sit. Last one standing wins.",skill:"Quick Thinking, Group Energy"},
+          {name:"Mirror Break",time:5,desc:"Pairs mirror each other's movements in silence – whoever leads and whoever follows will surprise you.",how:"Partners stand facing each other. No designated leader – they must mirror each other organically, trying to move so fluidly that neither knows who's leading. Switch partners after 90 seconds. Debrief: how do you know when someone is truly engaged with you?",skill:"Nonverbal Communication, Attunement"}
+        ]
+      },
+      validate: {
+        icon: "✅",
+        label: "Validate",
+        skill: "Affirmation & Belonging",
+        games: [
+          {name:"Hot Take Hot Seat",time:5,desc:"Someone shares an unpopular opinion. The group's job is to find ONE thing valid about it – no matter what.",how:"Volunteer shares a mild controversial take (pineapple on pizza is amazing, homework should be illegal, etc.). Each other student must identify one valid point in the opinion – even if they disagree. No sarcasm allowed. Debrief: why is it hard to validate things we disagree with?",skill:"Perspective-Taking, Intellectual Empathy"},
+          {name:"Feel the Room",time:3,desc:"Anonymous feelings check-in using body signals – no one singled out, everyone seen.",how:"Ask everyone to close their eyes. Read a list of emotional states ('I feel ready,' 'I feel anxious,' 'I feel invisible today'). Students raise their hand silently if it resonates. Open eyes. Discuss: what does it mean that so many of us feel the same things?",skill:"Emotional Validation, Community Awareness"},
+          {name:"Name It Don't Shame It",time:3,desc:"Call out feelings without judgment – speed round where every emotion named is celebrated with a snap.",how:"Go around the circle rapidly. Each student names ONE emotion they've felt this week. No explanations needed. After each one, the group snaps. If someone says 'I don't know,' the group says 'That counts too!' Nothing is wrong.",skill:"Emotional Literacy, Destigmatization"},
+          {name:"Repeat & Validate",time:5,desc:"Partners share a minor struggle. Listener must validate it – then switch. Simple rule: no fixing allowed.",how:"Pair up. Partner A shares something small but frustrating (e.g., 'I keep forgetting to charge my phone'). Partner B must say: 'That makes sense because…' and complete the sentence without offering a solution. Switch. Debrief: how does it feel when someone just validates you without trying to fix you?",skill:"Empathetic Listening, Emotional Validation"},
+          {name:"That's So Valid",time:5,desc:"React cards game – students hear scenarios and must articulate WHY the feeling is valid.",how:"Read out a scenario ('Someone forgot to invite you to a group chat. You felt left out.'). Students go around and say 'That's valid because…' – no dismissing, no comparing. Award a point for the most creative and compassionate response.",skill:"Empathy, Validation Skills"}
+        ]
+      },
+      elevate: {
+        icon: "⬆️",
+        label: "Elevate",
+        skill: "Growth Mindset & Strengths",
+        games: [
+          {name:"Superpower Switcheroo",time:5,desc:"Students swap 'superpowers' (strengths) with each other and explain why the trade is valuable.",how:"Everyone silently thinks of one personal strength or talent. On signal, everyone mixes, and pairs 'trade' their superpower by saying: 'I'll give you my [strength] and in return I want your [their strength] because…' Discuss: what do you see in others that they don't see in themselves?",skill:"Strength Recognition, Self-Awareness"},
+          {name:"Compliment Volleyball",time:5,desc:"Toss an imaginary ball – every catch requires giving a genuine specific compliment to the thrower.",how:"Stand in a circle. Mime throwing a ball to someone. When you 'catch' it, you give the thrower a specific, genuine compliment (not just 'you're nice' – something you actually noticed). No repeating. Keep the ball moving.",skill:"Positive Recognition, Gratitude"},
+          {name:"Glow & Grow",time:3,desc:"Lightning round: each student says one thing going well (glow) and one they want to work on (grow).",how:"Rapid-fire circle. Each student finishes the sentence: 'My glow is ____ and my grow is ____.' Keep it to 15 seconds each. No feedback, no commentary – just witnessing each person. Optional: teacher goes first to model vulnerability.",skill:"Self-Reflection, Growth Mindset"},
+          {name:"Plot Twist",time:5,desc:"Reframe a failure story into a plot twist that made the main character stronger.",how:"Volunteers share a minor failure or setback (anonymized if needed). The group's job is to reframe it as a 'plot twist' in the story of an awesome character. 'So they failed the test… plot twist: that was the day they discovered they learn better through videos.' How does perspective shift everything?",skill:"Reframing, Resilience"},
+          {name:"Level Up Votes",time:3,desc:"Secretly vote for who in the room has 'leveled up' since the start of school – winners get to hear why.",how:"Everyone anonymously writes a classmate's name and what they've seen that person improve at or overcome. Collect, shuffle, and read a few aloud (the name and the growth – nothing personal). Recipients can choose to respond or just receive it.",skill:"Recognition, Encouragement"}
+        ]
+      },
+      lead: {
+        icon: "🌟",
+        label: "Lead",
+        skill: "Agency & Initiative",
+        games: [
+          {name:"One Word Challenge",time:3,desc:"The leader says one word. The group must unify around a collective direction using only that word as a guide.",how:"Appoint a leader who says one word (e.g., 'forward'). Without talking, the group must arrange themselves physically in a way that represents that word. The leader watches, then says what they intended and what they saw. Discuss: what does leadership without words look like?",skill:"Leadership, Nonverbal Direction"},
+          {name:"Navigator",time:5,desc:"Blindfolded players navigate an obstacle course using ONLY verbal direction from a partner.",how:"Create a simple path between desks (or mark a route with tape). One student is blindfolded; the other is the navigator. Navigator must guide without touching – only words. Debrief: what makes a good leader when someone else has to trust you completely?",skill:"Communication, Trust, Leadership"},
+          {name:"Decision Roulette",time:5,desc:"Random student becomes decision-maker for a low-stakes group dilemma – must decide and own it.",how:"Pose a silly or low-stakes group decision ('We can only listen to one song for the whole trip: pop, rock, or lo-fi'). Spin to randomly pick the decision-maker. They must decide AND explain their reasoning. Group must accept the decision. Debrief: how does it feel to lead AND to follow?",skill:"Decision-Making, Accountability"},
+          {name:"Mentor for a Minute",time:5,desc:"Students give genuine advice to a younger version of themselves – and others discover shared wisdom.",how:"Each student writes/thinks about one piece of advice they'd give their 4th-grade self. Go around and share. After each one, anyone who would have needed that same advice raises their hand silently. Discover shared experiences.",skill:"Reflection, Peer Mentorship"},
+          {name:"Stand Up Challenge",time:3,desc:"Stand up if you've ever done something that required courage. Each stand-up leads to a 5-second story.",how:"Start seated. Teacher or student reads prompts ('Stand up if you ever defended someone,' 'Stand up if you tried something and failed'). Anyone who stands owes a 5-second story (optional). Notice: who else stood with you? You've never been as alone as you thought.",skill:"Courage, Leadership Identity"}
+        ]
+      }
+    }
+  },
+
+  power: {
+    label: "Power Up",
+    categories: {
+      listen: {
+        icon: "👂",
+        label: "Listen",
+        skill: "Active Listening",
+        games: [
+          {name:"Conversation Pinball",time:5,desc:"Multi-person conversations where you must reference something the PREVIOUS speaker said before adding your own point.",how:"Sit in a circle. Topic is introduced. Before you speak, you must acknowledge or reference what the last person said: 'Building on what [name] said…' or 'I noticed that when [name] said X, I felt…' Score a point every time you genuinely connect to a prior speaker.",skill:"Attentive Listening, Building on Ideas"},
+          {name:"The Lying Newscaster",time:5,desc:"One person delivers fake news. Listeners must identify the exact moment and word the lie starts.",how:"One volunteer delivers a short 'news report' about their week – but somewhere in it they switch to fiction. Listeners must raise their hand the INSTANT they think the lie started. Debrief: what listening cues tipped you off?",skill:"Critical Listening, Attention to Detail"},
+          {name:"Emotion Translator",time:5,desc:"Listen to what someone says – then translate what they might REALLY be feeling underneath.",how:"Volunteer shares something neutral ('I don't really care if we do this activity or not'). Listeners must translate: 'It sounds like you might be feeling…' Discuss: what's the difference between words and feelings? Why do we often say one thing and mean another?",skill:"Empathetic Listening, Emotional Decoding"},
+          {name:"Spectrum Standoff",time:10,desc:"Statements are read aloud. Students position themselves on a spectrum from agree to disagree – then LISTEN to why others landed where they did.",how:"Tape a line across the room (or use the front and back of the room). Read a statement. Students position themselves on the spectrum. Pick 3–4 students at different points to explain their position. Others must listen without interrupting, then may shift if they were genuinely persuaded.",skill:"Active Listening, Perspective-Taking"},
+          {name:"Telephone Remix",time:5,desc:"Classic telephone – but after the message is garbled, the class diagnoses exactly where listening broke down.",how:"Classic telephone chain. After the message reaches the end, trace it back step by step to find where it changed. Instead of laughing at mistakes, analyze: was it the speed, the clarity, the attention? Real-world connection: where does communication break down in real life?",skill:"Listening Analysis, Communication Awareness"}
+        ]
+      },
+      engage: {
+        icon: "⚡",
+        label: "Engage",
+        skill: "Presence & Participation",
+        games: [
+          {name:"Shark Tank Junior",time:10,desc:"60-second pitches for imaginary (but useful) inventions. Group invests fake money based on engagement.",how:"Each group has 2 minutes to brainstorm a product that solves a middle-school problem. One spokesperson pitches for 60 seconds. Everyone has $1,000 in fake money to invest (can split). Tally and discuss what made pitches engaging.",skill:"Public Speaking, Persuasion, Engagement"},
+          {name:"Human Bingo",time:10,desc:"Find classmates who match traits on your bingo card – but you must have a real conversation, no yes/no answers.",how:"Give everyone a bingo card with traits ('has moved schools,' 'plays an instrument,' 'is scared of birds,' etc.). To mark a square, you must have a genuine exchange of at least 3 sentences. First bingo wins, but everyone ends up knowing people better.",skill:"Conversation Skills, Curiosity, Engagement"},
+          {name:"Vibe Check Circle",time:5,desc:"Everyone shows their current 'vibe' physically on a count of 3 – no words, just body energy.",how:"On the count of three, everyone shows their current energy level and mood using ONLY body language (posture, facial expression, gesture). Freeze. Look around. Who's vibing with you? Who looks totally different? Discuss without judgment.",skill:"Self-Awareness, Nonverbal Expression"},
+          {name:"Five Finger Forecast",time:5,desc:"Each finger on your hand represents a different part of your life – quickly check in on all five.",how:"Thumb: something great this week. Index: something you're pointing toward (goal). Middle: something that's been frustrating (safe to share). Ring: a relationship you're grateful for. Pinky: something small but meaningful. Quick whip-around; pass if needed.",skill:"Self-Reflection, Connection"},
+          {name:"Scene Freeze",time:10,desc:"Improv scenes that anyone can freeze and take over – the energy stays high and unpredictable.",how:"Two people start an improvised scene (a dentist, a spaceship, etc.). Anyone can clap and yell 'FREEZE.' The two actors freeze. The person who called it taps someone out, takes their exact position, and starts a BRAND NEW scene from that position.",skill:"Spontaneity, Risk-Taking, Social Engagement"}
+        ]
+      },
+      validate: {
+        icon: "✅",
+        label: "Validate",
+        skill: "Affirmation & Belonging",
+        games: [
+          {name:"Validation Nation",time:10,desc:"Students rotate through 'booths' where they must validate increasingly difficult emotional scenarios.",how:"Set up 4 stations around the room. Each station has a written scenario (progressively more challenging emotionally). Groups rotate. At each station, the group must craft the most validating response possible in 90 seconds. Class votes on the best validation from each station.",skill:"Advanced Empathy, Validation Practice"},
+          {name:"Before You Advise",time:5,desc:"The golden rule of emotional support – before giving any advice, you must fully reflect back what you heard.",how:"Partner A shares a frustration. Partner B must reflect it back ('So what I hear you saying is…') until Partner A says 'Yes, exactly.' Only THEN can Partner B offer thoughts. Most people skip right to advice – this forces the pause.",skill:"Reflective Listening, Emotional Validation"},
+          {name:"Universal Feelings Smash",time:5,desc:"Students argue that seemingly unique feelings are actually universal – and find evidence from the room.",how:"Teacher reads an unusual or very specific feeling ('the feeling of sending a text and immediately regretting it'). Students work to restate it as a universal feeling and find everyone in the room who has experienced it. Discover: almost nothing you feel is unique.",skill:"Normalizing Emotions, Empathy"},
+          {name:"Comeback Needed",time:10,desc:"Respond to dismissive comments with validation instead – hardest game in the set.",how:"Read dismissive statements ('You're too sensitive,' 'It's not that big a deal,' 'Just get over it'). Students practice responding with a validating alternative. Role-play the scenario. Debrief: why is it SO hard not to dismiss people, even when we mean well?",skill:"Anti-Dismissal Skills, Emotional Intelligence"},
+          {name:"Shoutout Slam",time:5,desc:"Speed round of specific, genuine shoutouts – no generic compliments allowed.",how:"Rapid fire: 'I want to shout out [name] because I noticed ____.' The shoutout must be specific and observed ('You always hold the door,' 'You asked a great question yesterday'). Go until everyone has received at least one. No one can shout themselves out.",skill:"Recognition, Gratitude, Community"}
+        ]
+      },
+      elevate: {
+        icon: "⬆️",
+        label: "Elevate",
+        skill: "Growth Mindset & Strengths",
+        games: [
+          {name:"Strengths Brag Fest",time:5,desc:"Mandatory bragging – you MUST confidently state a strength about yourself. Modesty is disqualified.",how:"Go around the circle. Everyone must say 'I am really good at ____' with complete confidence. No 'kind of' or 'sometimes.' Observers may not react with surprise or compliments until the round is over. Debrief: why is it so hard to own our own strengths?",skill:"Self-Advocacy, Confidence"},
+          {name:"Future Headlines",time:10,desc:"Write the newspaper headline from your future – then explain what decisions the future-you made to get there.",how:"Each student writes a one-line headline about themselves 10 years in the future ('Local Teen Turned Inventor Solves Water Crisis'). Share and explain: what 3 steps did future-you take? How does today connect to that headline?",skill:"Goal-Setting, Aspirational Thinking"},
+          {name:"Reframe Factory",time:5,desc:"Turn negative self-talk into something an actual coach would say – out loud, in real time.",how:"Students anonymously submit a negative thought they've had about themselves. Read them aloud (deidentified). As a group, everyone must immediately reframe it into something a supportive coach would say. Speed and creativity win.",skill:"Cognitive Reframing, Self-Compassion"},
+          {name:"Character Auction",time:10,desc:"Bid on character traits with limited currency – what do you value most in yourself and others?",how:"Give everyone 1,000 points to spend. List 10–15 character traits on the board (courage, creativity, loyalty, humor, etc.). Run an auction. Students bid on the traits they most want. Tally what sold for the most. Discuss: are these traits you feel you have or ones you want?",skill:"Values Clarification, Self-Reflection"},
+          {name:"Effort Receipt",time:5,desc:"Document your effort from this week like a receipt – itemize what you worked hard on (no outcomes, just effort).",how:"Students mentally (or verbally) create an 'effort receipt' listing 3–5 things they genuinely tried at this week – not what they achieved, just what they put energy into. Share in pairs. Discuss: do we celebrate effort as much as outcomes?",skill:"Effort Recognition, Growth Mindset"}
+        ]
+      },
+      lead: {
+        icon: "🌟",
+        label: "Lead",
+        skill: "Agency & Initiative",
+        games: [
+          {name:"Pressure Cooker",time:10,desc:"Group must reach consensus under a tight time limit – reveals who leads, who follows, and who avoids.",how:"Give the group a choice to make (rank 5 values from most to least important for a team). They have exactly 4 minutes to reach full consensus. Timer is visible. Debrief: who spoke first? Who listened most? Who bridged disagreement? What does natural leadership look like?",skill:"Group Decision-Making, Leadership"},
+          {name:"Initiative Auction",time:10,desc:"Bid on leadership responsibilities – who steps up? Who hides? Real conversation about agency.",how:"List 6–8 class or group roles (discussion facilitator, timekeeper, devil's advocate, recorder, encourager). Students bid on them using 10 points each. Debrief after: why did people want or avoid certain roles? What does that reveal about how we see leadership?",skill:"Leadership Identity, Initiative"},
+          {name:"Ripple Effect",time:5,desc:"Map how one person's action ripples outward to affect 5 other people – trace leadership impact.",how:"Start with a scenario: 'Maria noticed a new student eating alone and invited them over.' Map the ripple: how does that action affect the new student, their family, Maria's reputation, bystanders, future students? Discuss: what's the smallest action you could take today that might create a ripple?",skill:"Impact Awareness, Responsible Leadership"},
+          {name:"Captain's Call",time:5,desc:"Be the captain: your team disagrees with your decision. Navigate it without shutting anyone down.",how:"One student is the 'captain.' Teacher gives a low-stakes scenario (which activity the class does for the last 5 minutes). Two volunteer 'crew members' disagree loudly. The captain must navigate to a decision that respects everyone. Rotate. Debrief: what made a captain effective?",skill:"Conflict Navigation, Leadership"},
+          {name:"Legacy Letter",time:10,desc:"Write a letter to the student who will have your seat next year – what do you want them to know?",how:"Students write a short letter to a future student who will be in their spot. What advice do they wish someone had given them? What should the next person know about this class, school, or themselves? Read some aloud. Keep the rest.",skill:"Reflection, Legacy Thinking, Leadership"}
+        ]
+      }
+    }
+  },
+
+  level: {
+    label: "Level Up",
+    categories: {
+      listen: {
+        icon: "👂",
+        label: "Listen",
+        skill: "Active Listening",
+        games: [
+          {name:"Counter-Perspective Challenge",time:10,desc:"Listen to a view you disagree with – then argue it better than the person who holds it.",how:"Pair up with someone who holds an opposite opinion on something low-stakes (homework, lunch, school rules). Listen to their full argument for 2 minutes – no interrupting. Then YOU argue their position for 1 minute, as powerfully as possible. Switch. Debrief: what does truly hearing someone require?",skill:"Deep Listening, Perspective-Taking"},
+          {name:"The Last Word",time:10,desc:"Advanced discussion game – you can only speak if you can first summarize the last speaker to their satisfaction.",how:"Open a discussion topic. Before anyone can make their point, they must accurately summarize the previous speaker ('So what I heard you say was…'). The previous speaker must say 'yes, that's right' or correct them. Only then can the new speaker make their point. Slows things down beautifully.",skill:"Listening for Understanding, Discussion Skills"},
+          {name:"Body Language Decoder",time:5,desc:"Watch a silent video clip (or live scene) and decode the emotions – no words, just observation.",how:"Play 60–90 seconds of a scene with the sound off. Students watch and write down: what emotion is each person feeling? What tells you that? What are they about to do? Compare observations. Discuss: how much do we communicate without words – and how often do we miss it?",skill:"Nonverbal Listening, Observational Awareness"},
+          {name:"Impact Interview",time:10,desc:"Students interview each other about moments that shaped them – and must listen for the story beneath the story.",how:"Pairs take turns interviewing each other: 'Tell me about a moment that changed how you think about yourself.' Listener takes notes. After, they reflect back not just what they heard but what they sensed was underneath it. Powerful, quiet, real.",skill:"Deep Listening, Empathy"},
+          {name:"The Listening Audit",time:5,desc:"Rate your own listening today – then your partner rates it too. Compare. Discuss the gap.",how:"Students reflect: on a scale of 1–10, how well have I listened to people today? Write it down. Then partner rates them based on their interactions this class. Compare the scores. Where is the gap? What does that gap reveal?",skill:"Listening Self-Awareness, Metacognition"}
+        ]
+      },
+      engage: {
+        icon: "⚡",
+        label: "Engage",
+        skill: "Presence & Participation",
+        games: [
+          {name:"TED Talk in 90",time:10,desc:"Deliver the most compelling 90-second talk possible on any topic – the only rule is you must make the audience FEEL something.",how:"Students have 3 minutes to prep. Then deliver 90 seconds on any topic they care about. The only metric: did the audience feel something? Vote on which talks created the strongest emotional response. Debrief: what engagement techniques did you notice?",skill:"Public Engagement, Authenticity"},
+          {name:"Controversy Table",time:10,desc:"A fishbowl discussion where the most engaged participants model what real conversation looks like.",how:"4–5 students sit in the center; the rest observe. The inner circle discusses a genuinely interesting debate topic. After 5 minutes, outer circle discusses: who was most engaged? Least? What body language, questions, or responses drove the conversation? Rotate.",skill:"Discussion Engagement, Active Participation"},
+          {name:"The Engagement Spectrum",time:5,desc:"Rate every interaction you had today from 1 (ghosting) to 10 (fully present) – and analyze the pattern.",how:"Students list 5 interactions from today (with a teacher, friend, parent, etc.). Rate their own engagement from 1–10 in each. Identify the lowest score – what reduced their engagement? What would have changed it? Share insights without shame.",skill:"Engagement Self-Awareness, Reflection"},
+          {name:"Debate Swap",time:10,desc:"Argue a position, then switch mid-debate to the opposite side – simultaneously.",how:"Two students debate a topic. After 3 minutes, a buzzer sounds and they SWAP positions – now they must argue the exact opposite viewpoint with equal conviction. Observers watch for who is more effective and why. Debrief: does engagement come from belief, or from effort?",skill:"Intellectual Flexibility, Engagement"},
+          {name:"One-Word Story Speed Run",time:5,desc:"Build a story one word at a time around the circle – speed increases until someone breaks.",how:"Circle game: each person adds exactly one word to a growing story. Start slow. Each round, the teacher claps faster. Anyone who pauses too long or says something nonsensical is a 'plot twist' – they must yell a random word that changes the story direction. Chaos, laughter, full engagement.",skill:"Presence, Quick Thinking, Fun"}
+        ]
+      },
+      validate: {
+        icon: "✅",
+        label: "Validate",
+        skill: "Affirmation & Belonging",
+        games: [
+          {name:"Walk in Their Shoes",time:10,desc:"Take on a persona with a hidden backstory – then interact with others whose story you don't know.",how:"Give each student a card with a secret backstory (shy because of a family situation, excited because of good news, etc.). Students mingle and have normal conversations. Afterward, reveal stories. Discuss: when someone acts a certain way, what might you NOT know about why?",skill:"Perspective-Taking, Compassion"},
+          {name:"The Belonging Meter",time:5,desc:"Anonymously rate your sense of belonging in this class – then as a group, figure out what moves the needle.",how:"Students anonymously rate 1–10: 'How much do I feel like I belong in this class?' Collect and display the range. As a group, brainstorm: what would raise everyone's score by 2 points? What's one thing we could do THIS WEEK?",skill:"Community Building, Belonging"},
+          {name:"Story Stealer",time:10,desc:"Steal someone's story and tell it as if it happened to you – to see if you TRULY understood it.",how:"Pairs share a story from their own life. Then each person must retell the OTHER person's story to the group as if it happened to them ('So there I was…'). The original storyteller can correct misrepresentations. Debrief: what did the storyteller feel when their story was told well vs. poorly?",skill:"Empathy, Validation, Deep Listening"},
+          {name:"Validation Gauntlet",time:10,desc:"Every player must survive 5 rounds of invalidating statements – and respond only with empathy, never defensiveness.",how:"In pairs: Partner A says something vulnerable. Partner B (secretly) responds with a dismissive comment ('That's not a big deal'). Partner A must respond ONLY with empathy and understanding – not defensiveness. Debrief: what does it take to NOT react defensively when you're not validated?",skill:"Emotional Regulation, Empathy"},
+          {name:"I See You",time:5,desc:"The most powerful two words. Students practice truly seeing their classmates – out loud.",how:"Randomly assign pairs. Each partner takes 1 minute to share one honest, specific observation about the other person – something real they've noticed over time. Not a compliment, just an observation: 'I've noticed you always ask thoughtful questions.' Then switch. No response needed. Just receive it.",skill:"Deep Validation, Community"}
+        ]
+      },
+      elevate: {
+        icon: "⬆️",
+        label: "Elevate",
+        skill: "Growth Mindset & Strengths",
+        games: [
+          {name:"Failure Resume",time:10,desc:"Build a resume of your greatest failures and what they taught you – present it to the group with pride.",how:"Students have 3 minutes to write 3–5 'failures' they're proud of (tried something new and flopped, took a risk that didn't pay off, etc.). Pairs share their failure resumes. Vote on the most impressive failure. Discuss: what does a failure resume reveal about a person that a success resume doesn't?",skill:"Resilience, Reframing Failure"},
+          {name:"Strength Heist",time:10,desc:"Steal three strengths from classmates by convincing them you need those strengths most right now.",how:"Everyone writes their top 3 strengths on a card. For 5 minutes, students mingle and pitch WHY they need someone else's strength. The other person can 'loan' it (give you their card). At the end, who collected the most diverse strengths? Discuss: what does it mean to recognize strengths in others?",skill:"Strength Identification, Appreciation"},
+          {name:"Mindset Courtroom",time:10,desc:"Put 'I can't do this' on trial – the class serves as jury, witnesses, and prosecutors.",how:"Write 'I can't ____' on the board (e.g., 'I can't get better at math'). Run a mock trial: prosecution argues it's false (presents evidence of growth, neuroplasticity, examples). Defense argues for the fixed mindset. Jury deliberates. Verdict: what do YOU actually believe?",skill:"Growth Mindset, Critical Thinking"},
+          {name:"If I Were Brave",time:5,desc:"Complete this sentence: 'If I were brave, I would ____.' Then take the first tiny step right now.",how:"Each student completes the sentence silently. Then pair up and share. Together, brainstorm what the SMALLEST possible first step would be – something they could do today. Make a commitment. Accountability partner checks in at the end of the week.",skill:"Courage, Goal-Setting"},
+          {name:"20 Years Later",time:10,desc:"Flash forward 20 years – you're being interviewed about the moment in middle school that changed everything.",how:"Students close their eyes and imagine a future interview. Question: 'What moment in middle school set the trajectory for everything after?' They make up the story of that moment – it can be real or imagined. Share. Discuss: what do you want to be doing NOW to create that story?",skill:"Aspirational Thinking, Agency"}
+        ]
+      },
+      lead: {
+        icon: "🌟",
+        label: "Lead",
+        skill: "Agency & Initiative",
+        games: [
+          {name:"Crisis Commander",time:10,desc:"Lead your team through a simulated crisis with incomplete information – every decision matters.",how:"Divide into groups of 5. Give each group a scenario (your school trip bus breaks down, a project falls apart the night before, etc.). One person is the 'commander' who must lead the group to a decision in 5 minutes. Rotate commanders. Debrief: what leadership behaviors emerged under pressure?",skill:"Leadership Under Pressure, Decision-Making"},
+          {name:"Power Mapping",time:10,desc:"Map the influence networks in your school or community – and identify where YOUR voice fits.",how:"Students draw a map of who has power in their school (formally and informally). Then map who influences whom. Where are the gaps? Where could one person have the most impact? Discuss: you have more influence than you think. Where would you place yourself?",skill:"Systems Thinking, Agency"},
+          {name:"The Hard Conversation",time:10,desc:"Practice the conversation you've been avoiding – with coaching from the group.",how:"Students anonymously submit a conversation they've been avoiding (with a friend, teacher, family member). Read 3–4 of them aloud. For each one, the group coaches: how do you start it? What do you say first? What's the worst that happens? Role-play the opening line. Build confidence.",skill:"Courageous Communication, Leadership"},
+          {name:"Manifest Destiny",time:5,desc:"Write your manifesto – 5 values you will lead your life by, non-negotiable, starting today.",how:"3 minutes of silent writing. Students write 5 personal values as declarations ('I will always speak up for people who are ignored. I will fail at things that matter. I will not pretend to be okay when I'm not.'). Share one with the class. Collect for a class wall.",skill:"Values Leadership, Identity"},
+          {name:"Lead From Any Seat",time:10,desc:"Identify 5 ways to show leadership from wherever you currently are – no title needed.",how:"Students brainstorm in pairs: 5 specific leadership actions that require ZERO formal power or title. Share across the room. Compile the class list on the board. Then each student commits to one action this week. End of week: did you do it? What happened?",skill:"Everyday Leadership, Initiative"}
+        ]
+      }
+    }
+  }
+};
+
+const levelColors = {
+  warm: { accent: '#FF6B6B', light: 'rgba(255,107,107,0.15)' },
+  power: { accent: '#6C5CE7', light: 'rgba(108,92,231,0.15)' },
+  level: { accent: '#00B894', light: 'rgba(0,184,148,0.15)' }
+};
+
+const catColors = { listen: 'var(--listen)', engage: 'var(--engage)', validate: 'var(--validate)', elevate: 'var(--elevate)', lead: 'var(--lead)' };
+const catEmoji = { listen: '👂', engage: '⚡', validate: '✅', elevate: '⬆️', lead: '🌟' };
+
+let currentLevel = 'warm';
+let currentFilter = 'all';
+let allGameCards = [];
+
+function buildPanel(levelKey) {
+  const panel = document.getElementById(`panel-${levelKey}`);
+  const levelData = DATA[levelKey];
+  panel.innerHTML = '';
+
+  Object.entries(levelData.categories).forEach(([catKey, catData]) => {
+    const section = document.createElement('div');
+    section.className = `category-section cat-${catKey}`;
+
+    section.innerHTML = `
+      <div class="category-header">
+        <div class="category-icon">${catData.icon}</div>
+        <div>
+          <div class="category-title">${catData.label}</div>
+          <div class="category-sub">Skill: ${catData.skill}</div>
+        </div>
+      </div>
+      <div class="cards-grid" id="grid-${levelKey}-${catKey}"></div>
+    `;
+
+    panel.appendChild(section);
+
+    const grid = section.querySelector('.cards-grid');
+    catData.games.forEach((game, idx) => {
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.dataset.time = game.time;
+      card.dataset.level = levelKey;
+      card.dataset.cat = catKey;
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="game-name">${game.name}</div>
+          <div class="time-badge">⏱ ${game.time} min</div>
+        </div>
+        <div class="game-desc">${game.desc}</div>
+        <div class="expand-hint">Click to expand →</div>
+      `;
+      card.addEventListener('click', () => openModal(game, catData, levelKey, catKey));
+      allGameCards.push(card);
+      grid.appendChild(card);
+    });
+  });
+}
+
+['warm','power','level'].forEach(lk => buildPanel(lk));
+
+function switchLevel(lk) {
+  currentLevel = lk;
+  document.querySelectorAll('.level-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${lk}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.tab-${lk}`).classList.add('active');
+  applyFilter();
+}
+
+function filterTime(t, btn) {
+  currentFilter = t;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  const levelCards = allGameCards.filter(c => c.dataset.level === currentLevel);
+  levelCards.forEach(card => {
+    if (currentFilter === 'all' || card.dataset.time === currentFilter) {
+      card.classList.remove('hidden-by-filter');
+    } else {
+      card.classList.add('hidden-by-filter');
+    }
+  });
+}
+
+function openModal(game, catData, levelKey, catKey) {
+  document.getElementById('m-cat').textContent = `${catEmoji[catKey]} ${catData.label} · ${DATA[levelKey].label}`;
+  document.getElementById('m-title').textContent = game.name;
+  document.getElementById('m-time').textContent = `⏱ ${game.time} minutes · No Materials Needed`;
+  document.getElementById('m-desc').textContent = game.desc;
+  document.getElementById('m-how').textContent = game.how;
+  document.getElementById('m-skill').innerHTML = `<strong>SEL Focus:</strong> ${game.skill}`;
+  const color = catColors[catKey] || '#fff';
+  document.getElementById('m-title').style.color = color;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+function pickRandom() {
+  const levelData = DATA[currentLevel];
+  const cats = Object.keys(levelData.categories);
+  const cat = cats[Math.floor(Math.random() * cats.length)];
+  const catData = levelData.categories[cat];
+  const game = catData.games[Math.floor(Math.random() * catData.games.length)];
+  openModal(game, catData, currentLevel, cat);
+}
+</script>
+</body>
+</html>
